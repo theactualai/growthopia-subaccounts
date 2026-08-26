@@ -77,8 +77,8 @@ export const clients: Client[] = [
 ];
 
 export const proxies: Proxy[] = [
-  { id: 'px-01', vendor: 'webshare', ip: '198.23.243.226', protocol: 'socks5', tier: 'shared-static-residential', monthlyCost: 0.3, status: 'active' },
-  { id: 'px-02', vendor: 'webshare', ip: '198.23.243.227', protocol: 'socks5', tier: 'shared-static-residential', monthlyCost: 0.3, status: 'active' },
+  { id: 'px-01', vendor: 'webshare', ip: '198.23.243.226', protocol: 'http', tier: 'shared-static-residential', monthlyCost: 0.3, status: 'active' },
+  { id: 'px-02', vendor: 'webshare', ip: '198.23.243.227', protocol: 'http', tier: 'shared-static-residential', monthlyCost: 0.3, status: 'active' },
   { id: 'px-03', vendor: 'webshare', ip: '198.23.243.228', protocol: 'socks5', tier: 'shared-static-residential', monthlyCost: 0.3, status: 'cooldown' },
 ];
 

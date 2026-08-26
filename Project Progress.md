@@ -33,6 +33,7 @@ Seed data only. No env vars required for the preview.
 - **2026-08-26 - Annual billing on both vendors.** Halves GoLogin at every tier, cuts Webshare about a third. No case where monthly wins.
 - **2026-08-26 - Phone approach undecided pending a test.** Whether a number can be removed after switching to an authenticator decides between strategy A ($1.09/client) and D ($3.75/client). Google is the one expected to refuse.
 - **2026-08-26 - TOTP secrets never reach the browser.** Server-side generation only. This is a hard constraint, not a preference.
+- **2026-08-26 - Proxy protocol is per-identity, not global.** HTTP works where SOCKS5 fails on Microsoft. Do not hardcode a protocol; store what actually worked.
 
 ## Gotchas
 
@@ -41,6 +42,7 @@ Seed data only. No env vars required for the preview.
 - **The audit log is in-memory.** It resets on redeploy until Supabase lands.
 - **Vista Social is excluded from the cost model** on purpose. It is budgeted separately and prices per connected profile at about $5, which would dominate everything else.
 - **Only YouTube can be availability-checked.** Measured 2026-08-26: YouTube returns 404 for a free handle and 200 for a taken one. Instagram and TikTok return 200 for *every* handle when logged out, both serving the same JS shell, so there is no honest check. oEmbed does not help - both reject profile URLs and only resolve individual videos. The UI shows a "check" link for those two rather than a made-up verdict. Real IG/TikTok checks need an authenticated session or a paid scraping API.
+- **Use HTTP, not SOCKS5, for Microsoft.** Confirmed 2026-08-26: microsoft.com returned a 502 error page through the Webshare proxy on SOCKS5 and loaded fine on HTTP, on the same IP, while Instagram worked on both. The handoff doc recommended SOCKS5 with HTTP as a fallback; for Microsoft it is the other way round. Record the working protocol per identity in `ProxyResource.protocol` rather than assuming one default.
 - **The handle finder needs `ANTHROPIC_API_KEY` on Vercel.** There is no `claude` CLI in a serverless runtime, so the AI step falls back to rule-based ideas only until the key is set.
 
 ## Scope note
