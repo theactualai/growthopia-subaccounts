@@ -1,0 +1,36 @@
+:root {
+  --bg: #fbfbfa; --card: #fff; --line: #e6e5e1; --ink: #1c1c1a;
+  --muted: #6b6a66; --accent: #2f5d50; --warn: #b4451f; --ok: #2f6f4e;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 14px/1.5 ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+a { color: var(--accent); }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 64px; }
+header.top { border-bottom: 1px solid var(--line); background: #fff; }
+header.top .inner { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; gap: 22px; align-items: baseline; }
+header.top strong { font-size: 15px; }
+header.top nav a { margin-right: 16px; text-decoration: none; color: var(--muted); font-size: 13px; }
+header.top nav a:hover { color: var(--ink); }
+h1 { font-size: 20px; margin: 22px 0 4px; }
+h2 { font-size: 15px; margin: 28px 0 10px; }
+p.sub { color: var(--muted); margin: 0 0 8px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; border: 1px solid var(--line); background: #f6f6f4; }
+.pill.ok { color: var(--ok); border-color: #cfe4d7; background: #f1f8f4; }
+.pill.warn { color: var(--warn); border-color: #f0d5c8; background: #fdf3ee; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.stat { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.stat b { display: block; font-size: 20px; font-variant-numeric: tabular-nums; }
+.stat span { color: var(--muted); font-size: 12px; }
+.code { font: 20px ui-monospace, Menlo, monospace; letter-spacing: .14em; }
+button { font: inherit; padding: 5px 11px; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer; }
+button:hover { border-color: #c9c8c3; }
+.muted { color: var(--muted); font-size: 12px; }
+.scroll { overflow-x: auto; }

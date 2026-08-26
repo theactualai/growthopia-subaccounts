@@ -1,0 +1,46 @@
+# Project Progress - Growthopia Subaccounts
+
+Internal tool for provisioning and managing additional social accounts for
+clients: inventory, credentials, 2FA retrieval, cost modelling and client handoff.
+
+Separate from the fulfillment overhaul in `Growthopia Ops`. Same company, different system.
+
+## How to run
+
+```
+npm install
+npm run dev      # http://localhost:3111
+```
+
+Seed data only. No env vars required for the preview.
+
+## Where things stand
+
+- ✅ **Cost model** - live in the [Subaccount Database sheet](https://docs.google.com/spreadsheets/d/1oxzf6Tql5lL7Ci2YJ0zA1kjnjm1t_m_sSe6HbsAeiiM/edit), Math tab. One consolidated table, dropdown filters, notes on every variable.
+- ✅ **Dashboard MVP** - clients, resource inventory, identity capacity, recycle eligibility, cost model, audit log.
+- ✅ **2FA retrieval** - RFC 6238 TOTP computed server side. Browser only ever receives six digits.
+- ⬜ **Supabase** - swap `src/lib/store.ts` for real tables. Secrets table with RLS denying all client reads.
+- ⬜ **Google SSO** - restrict to the workspace domain, not just an invite list.
+- ⬜ **Vercel deploy** - needs the repo pushed to a remote first.
+- ⬜ **GoLogin + Webshare adapters** - create identities and allocate proxies from the dashboard.
+- ⬜ **Monday.com client sync** - pull the client list rather than keeping a second one.
+
+## Decisions
+
+- **2026-08-26 - Cost target is $10-15/client/month.** Reachable. At 3 accounts per platform and annual billing the infra lands near $1.70-2.80/client. Phone strategy is the only lever that can break it.
+- **2026-08-26 - GoLogin Professional 10 is the entry plan**, $9/mo or $4.50 annual. The original handoff doc assumed Business at $119, which was 13x too expensive at low client counts.
+- **2026-08-26 - Annual billing on both vendors.** Halves GoLogin at every tier, cuts Webshare about a third. No case where monthly wins.
+- **2026-08-26 - Phone approach undecided pending a test.** Whether a number can be removed after switching to an authenticator decides between strategy A ($1.09/client) and D ($3.75/client). Google is the one expected to refuse.
+- **2026-08-26 - TOTP secrets never reach the browser.** Server-side generation only. This is a hard constraint, not a preference.
+
+## Gotchas
+
+- **Vendor pricing is stepped, not linear.** Cost per client jumps at each tier boundary. The cheapest client counts are 10, 50, 100 and 300. At 15 clients you pay for 50 GoLogin profiles.
+- **Webshare has a 20-proxy minimum.** $6.00/mo monthly, $4.00 yearly, however few you need.
+- **The audit log is in-memory.** It resets on redeploy until Supabase lands.
+- **Vista Social is excluded from the cost model** on purpose. It is budgeted separately and prices per connected profile at about $5, which would dominate everything else.
+
+## Not built here
+
+Handle, persona and lookalike-identity generation, and bulk availability
+checking for that purpose, are deliberately out of scope for this repo.
