@@ -97,8 +97,8 @@ export const phones: PhoneResource[] = [
 ];
 
 export const emails: EmailIdentity[] = [
-  { id: 'em-01', provider: 'workspace', address: 'social@360bnbsolutions.com',  domain: '360bnbsolutions.com',  domainAgeDays: 1400, clientId: 'c-0001', status: 'active', createdAt: iso(48) },
-  { id: 'em-02', provider: 'workspace', address: 'clips@360bnbsolutions.com',   domain: '360bnbsolutions.com',  domainAgeDays: 1400, clientId: 'c-0001', status: 'active', createdAt: iso(40) },
+  { id: 'em-01', provider: 'workspace', address: 'social@360bnbsolutions.com',  domain: '360bnbsolutions.com',  domainAgeDays: 34, clientId: 'c-0001', status: 'active', createdAt: iso(48) },
+  { id: 'em-02', provider: 'workspace', address: 'clips@360bnbsolutions.com',   domain: '360bnbsolutions.com',  domainAgeDays: 34, clientId: 'c-0001', status: 'active', createdAt: iso(40) },
   { id: 'em-03', provider: 'zoho',      address: 'hello@360bnbcleaning.com',    domain: '360bnbcleaning.com',   domainAgeDays: 9,    clientId: 'c-0001', status: 'active', createdAt: iso(3) },
 ];
 

@@ -15,6 +15,8 @@ export default function Names() {
           publishes no availability endpoint at all, so email addresses are shape-checked only and
           confirmed at signup. Even a &quot;free&quot; YouTube result is a strong signal rather than
           a guarantee, since platforms reserve names and hold recently-deleted handles.
+          The <b>.com</b> column is the exception: that comes from RDAP, the registry&apos;s own
+          protocol, so it is authoritative. It runs on the top 12 candidates only.
         </p>
       </div>
     </>

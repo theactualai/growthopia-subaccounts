@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { ruleIdeas, emailIdeas } from '@/lib/names';
 import { generateIdeas, provider } from '@/lib/ai';
 import { checkMany, emailSuggestion, type Platform } from '@/lib/availability';
+import { checkDomains } from '@/lib/domains';
 
 export const runtime = 'nodejs';        // child_process for the claude CLI
 export const maxDuration = 120;
@@ -41,11 +42,18 @@ export async function POST(req: Request) {
 
   const checks = await checkMany(merged.map((m) => m.handle), platforms);
 
+  // Domains are the one availability check that is authoritative, so run it on
+  // the top candidates only - RDAP is slower than an HTTP probe.
+  const topHandles = merged.slice(0, 12).map((m) => m.handle);
+  const domains = await checkDomains(topHandles.map((h) => `${h.replace(/[._]/g, '')}.com`));
+  const domainFor = (h: string) => domains.find((d) => d.domain === `${h.replace(/[._]/g, '')}.com`);
+
   const results = merged.map((m) => {
     const per = platforms.map((p) => checks.find((c) => c.handle === m.handle && c.platform === p)!);
     return {
       ...m,
       platforms: Object.fromEntries(per.map((c) => [c.platform, { verdict: c.verdict, note: c.note, url: c.url }])),
+      domain: domainFor(m.handle) ?? null,
       // Ranking signal only: nothing we could check came back taken.
       noneTaken: per.every((c) => c.verdict !== 'taken'),
     };

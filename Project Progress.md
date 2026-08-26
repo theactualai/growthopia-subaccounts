@@ -22,7 +22,8 @@ Seed data only. No env vars required for the preview.
 - ✅ **Handle finder** - brand-extension handle and email ideas for a client, with availability checking. Runs on the local `claude` CLI in dev, the Anthropic API when `ANTHROPIC_API_KEY` is set.
 - ⬜ **Supabase** - swap `src/lib/store.ts` for real tables. Secrets table with RLS denying all client reads.
 - ⬜ **Google SSO** - restrict to the workspace domain, not just an invite list.
-- 🟡 **Vercel deploy** - repo pushed to GitHub, connect it in Vercel.
+- ✅ **Vercel deploy** - live at https://growthopia-subaccounts-jgzxnkgr3-growthopia.vercel.app
+- 🔴 **No authentication yet** - the deployed dashboard is publicly reachable. Turn on Vercel Deployment Protection until Google SSO lands.
 - ⬜ **GoLogin + Webshare adapters** - create identities and allocate proxies from the dashboard.
 - ⬜ **Monday.com client sync** - pull the client list rather than keeping a second one.
 
@@ -44,6 +45,8 @@ Seed data only. No env vars required for the preview.
 - **Vista Social is excluded from the cost model** on purpose. It is budgeted separately and prices per connected profile at about $5, which would dominate everything else.
 - **Only YouTube can be availability-checked.** Measured 2026-08-26: YouTube returns 404 for a free handle and 200 for a taken one. Instagram and TikTok return 200 for *every* handle when logged out, both serving the same JS shell, so there is no honest check. oEmbed does not help - both reject profile URLs and only resolve individual videos. The UI shows a "check" link for those two rather than a made-up verdict. Real IG/TikTok checks need an authenticated session or a paid scraping API.
 - **Use HTTP, not SOCKS5, for Microsoft.** Confirmed 2026-08-26: microsoft.com returned a 502 error page through the Webshare proxy on SOCKS5 and loaded fine on HTTP, on the same IP, while Instagram worked on both. The handoff doc recommended SOCKS5 with HTTP as a fallback; for Microsoft it is the other way round. Record the working protocol per identity in `ProxyResource.protocol` rather than assuming one default.
+- **360bnbsolutions.com was registered 2026-07-23**, so it is ~34 days old, not aged. Verified via RDAP. It gets the low per-domain cap (2), not the aged cap (5). Do not assume a client's own domain is old; check it.
+- **Domain checks are authoritative, handle checks are not.** RDAP is the registry's own protocol: 404 means available, 200 returns the registration record including age. Use it. The social-handle checks remain best-effort (YouTube only).
 - **Cap accounts per email domain and space the signups.** Alex has seen accounts restricted for reusing one domain across several signups. Enforced in `lib/store.ts`: 2 accounts on a domain under 180 days old, 5 on an aged one, and at least 2 days between signups on the same domain. Domain age and velocity are the likely real drivers, so an aged client domain carries more load than a freshly bought one.
 - **The handle finder needs `ANTHROPIC_API_KEY` on Vercel.** There is no `claude` CLI in a serverless runtime, so the AI step falls back to rule-based ideas only until the key is set.
 

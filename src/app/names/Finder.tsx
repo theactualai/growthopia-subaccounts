@@ -5,6 +5,7 @@ type Cell = { verdict: string; note?: string; url: string };
 type Row = {
   handle: string; why: string; source: 'ai' | 'rules';
   platforms: Record<string, Cell>;
+  domain: { domain: string; available: boolean | null; ageDays?: number; note?: string } | null;
   noneTaken: boolean;
 };
 
@@ -58,7 +59,7 @@ export default function Finder() {
       {rows.length > 0 && (
         <div className="card scroll">
           <table>
-            <thead><tr><th>Handle</th><th>Instagram</th><th>TikTok</th><th>YouTube</th><th>Why</th><th>Source</th></tr></thead>
+            <thead><tr><th>Handle</th><th>Instagram</th><th>TikTok</th><th>YouTube</th><th>.com</th><th>Why</th><th>Source</th></tr></thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.handle} style={r.noneTaken ? { background: '#f4faf6' } : undefined}>
@@ -66,6 +67,12 @@ export default function Finder() {
                   <td>{dot(r.platforms.instagram)}</td>
                   <td>{dot(r.platforms.tiktok)}</td>
                   <td>{dot(r.platforms.youtube)}</td>
+                  <td>
+                    {!r.domain ? <span className="muted">—</span>
+                     : r.domain.available === true ? <span className="pill ok">free</span>
+                     : r.domain.available === false ? <span className="pill warn" title={`registered, ${r.domain.ageDays}d old`}>taken</span>
+                     : <span className="pill" title={r.domain.note}>?</span>}
+                  </td>
                   <td className="muted">{r.why}</td>
                   <td className="muted">{r.source}</td>
                 </tr>
