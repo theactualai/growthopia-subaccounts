@@ -15,6 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <strong>Growthopia Subaccounts</strong>
             <nav>
               <a href="/">Clients</a>
+              <a href="/names">Handle finder</a>
               <a href="/costs">Cost model</a>
               <a href="/audit">Audit log</a>
             </nav>

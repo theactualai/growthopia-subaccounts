@@ -19,9 +19,10 @@ Seed data only. No env vars required for the preview.
 - ✅ **Cost model** - live in the [Subaccount Database sheet](https://docs.google.com/spreadsheets/d/1oxzf6Tql5lL7Ci2YJ0zA1kjnjm1t_m_sSe6HbsAeiiM/edit), Math tab. One consolidated table, dropdown filters, notes on every variable.
 - ✅ **Dashboard MVP** - clients, resource inventory, identity capacity, recycle eligibility, cost model, audit log.
 - ✅ **2FA retrieval** - RFC 6238 TOTP computed server side. Browser only ever receives six digits.
+- ✅ **Handle finder** - brand-extension handle and email ideas for a client, with availability checking. Runs on the local `claude` CLI in dev, the Anthropic API when `ANTHROPIC_API_KEY` is set.
 - ⬜ **Supabase** - swap `src/lib/store.ts` for real tables. Secrets table with RLS denying all client reads.
 - ⬜ **Google SSO** - restrict to the workspace domain, not just an invite list.
-- ⬜ **Vercel deploy** - needs the repo pushed to a remote first.
+- 🟡 **Vercel deploy** - repo pushed to GitHub, connect it in Vercel.
 - ⬜ **GoLogin + Webshare adapters** - create identities and allocate proxies from the dashboard.
 - ⬜ **Monday.com client sync** - pull the client list rather than keeping a second one.
 
@@ -39,8 +40,11 @@ Seed data only. No env vars required for the preview.
 - **Webshare has a 20-proxy minimum.** $6.00/mo monthly, $4.00 yearly, however few you need.
 - **The audit log is in-memory.** It resets on redeploy until Supabase lands.
 - **Vista Social is excluded from the cost model** on purpose. It is budgeted separately and prices per connected profile at about $5, which would dominate everything else.
+- **Only YouTube can be availability-checked.** Measured 2026-08-26: YouTube returns 404 for a free handle and 200 for a taken one. Instagram and TikTok return 200 for *every* handle when logged out, both serving the same JS shell, so there is no honest check. oEmbed does not help - both reject profile URLs and only resolve individual videos. The UI shows a "check" link for those two rather than a made-up verdict. Real IG/TikTok checks need an authenticated session or a paid scraping API.
+- **The handle finder needs `ANTHROPIC_API_KEY` on Vercel.** There is no `claude` CLI in a serverless runtime, so the AI step falls back to rule-based ideas only until the key is set.
 
-## Not built here
+## Scope note
 
-Handle, persona and lookalike-identity generation, and bulk availability
-checking for that purpose, are deliberately out of scope for this repo.
+The handle finder produces **brand-extension** names: every suggestion visibly
+belongs to the client's business, the same way a domain search returns variations
+on a company name. Persona and lookalike-identity generation is out of scope.
