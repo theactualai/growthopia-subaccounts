@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import {
   getClient, clientAccounts, clientIdentities, clientPhones, clientEmails,
   proxyFor, secretFor, identityLoad, recycleState, identities,
+  clientDomains, MIN_DAYS_BETWEEN_SIGNUPS,
 } from '@/lib/store';
 import { DEFAULTS } from '@/lib/cost';
 import CodeButton from './CodeButton';
@@ -14,6 +15,7 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
   const accounts = clientAccounts(id);
   const ids = clientIdentities(id);
   const pool = identities.filter((i) => !i.clientId);
+  const domains = clientDomains(id);
 
   return (
     <>
@@ -75,6 +77,40 @@ export default async function ClientPage({ params }: { params: Promise<{ id: str
           </tbody>
         </table>
       </div>
+
+      <h2>Email domains</h2>
+      <div className="card scroll">
+        <table>
+          <thead>
+            <tr><th>Domain</th><th className="num">Age</th><th className="num">Accounts</th><th>Capacity</th><th>Last signup</th><th>Next signup</th></tr>
+          </thead>
+          <tbody>
+            {domains.map((d) => (
+              <tr key={d.domain}>
+                <td>{d.domain}</td>
+                <td className="num muted">{d.ageDays === null ? 'unknown' : d.aged ? `${Math.floor(d.ageDays / 365)}y` : `${d.ageDays}d`}</td>
+                <td className="num">{d.used}</td>
+                <td>
+                  <span className={`pill ${d.atCap ? 'warn' : 'ok'}`}>
+                    {d.atCap ? `at cap (${d.used}/${d.cap})` : `${d.cap - d.used} left of ${d.cap}`}
+                  </span>
+                </td>
+                <td className="muted">{d.daysSinceLast === null ? '—' : `${d.daysSinceLast}d ago`}</td>
+                <td>
+                  {d.tooSoon
+                    ? <span className="pill warn">wait {MIN_DAYS_BETWEEN_SIGNUPS - (d.daysSinceLast ?? 0)}d</span>
+                    : <span className="pill ok">clear</span>}
+                </td>
+              </tr>
+            ))}
+            {domains.length === 0 && <tr><td colSpan={6} className="muted">No domains yet.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <p className="muted">
+        A domain under {180} days old caps at 2 accounts; an aged one at 5. Signups on the same
+        domain stay at least {MIN_DAYS_BETWEEN_SIGNUPS} days apart. Both limits live in lib/store.ts.
+      </p>
 
       <h2>Identity pool</h2>
       <div className="card scroll">

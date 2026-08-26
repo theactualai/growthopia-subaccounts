@@ -50,10 +50,13 @@ export type PhoneResource = {
 
 export type EmailIdentity = {
   id: string;
-  provider: 'yahoo' | 'other';
+  provider: 'yahoo' | 'workspace' | 'zoho' | 'other';
   address: string;
+  domain: string;
+  domainAgeDays: number | null;   // null = unknown. Aged domains take more load.
   clientId: string | null;
   status: ResourceStatus;
+  createdAt: string;
 };
 
 export type PlatformAccount = {
@@ -94,8 +97,9 @@ export const phones: PhoneResource[] = [
 ];
 
 export const emails: EmailIdentity[] = [
-  { id: 'em-01', provider: 'yahoo', address: 'ops-c0001-01@yahoo.com', clientId: 'c-0001', status: 'active' },
-  { id: 'em-02', provider: 'yahoo', address: 'ops-c0001-02@yahoo.com', clientId: 'c-0001', status: 'active' },
+  { id: 'em-01', provider: 'workspace', address: 'social@360bnbsolutions.com',  domain: '360bnbsolutions.com',  domainAgeDays: 1400, clientId: 'c-0001', status: 'active', createdAt: iso(48) },
+  { id: 'em-02', provider: 'workspace', address: 'clips@360bnbsolutions.com',   domain: '360bnbsolutions.com',  domainAgeDays: 1400, clientId: 'c-0001', status: 'active', createdAt: iso(40) },
+  { id: 'em-03', provider: 'zoho',      address: 'hello@360bnbcleaning.com',    domain: '360bnbcleaning.com',   domainAgeDays: 9,    clientId: 'c-0001', status: 'active', createdAt: iso(3) },
 ];
 
 export const accounts: PlatformAccount[] = [
@@ -132,4 +136,45 @@ export function recycleState(identity: Identity, cooldownDays = 30) {
   return days >= cooldownDays
     ? { eligible: true, daysLeft: 0, reason: `released ${days} days ago` }
     : { eligible: false, daysLeft: cooldownDays - days, reason: `released ${days} days ago` };
+}
+
+
+// Per-domain guardrail.
+//
+// Alex has seen accounts restricted for reusing one email domain across several
+// signups. Domain age and signup spacing are the two inputs that plausibly drive
+// that, so this caps how many accounts lean on one domain and how fast they are
+// created. A brand new domain gets a lower cap than an aged one.
+export const DOMAIN_CAP_NEW = 2;        // domain younger than AGED_AFTER_DAYS
+export const DOMAIN_CAP_AGED = 5;
+export const AGED_AFTER_DAYS = 180;
+export const MIN_DAYS_BETWEEN_SIGNUPS = 2;
+
+export function domainLoad(domain: string) {
+  const onDomain = emails.filter((e) => e.domain === domain && e.status !== 'retired');
+  const age = onDomain[0]?.domainAgeDays ?? null;
+  const aged = age !== null && age >= AGED_AFTER_DAYS;
+  const cap = aged ? DOMAIN_CAP_AGED : DOMAIN_CAP_NEW;
+
+  // Days since the most recent signup on this domain.
+  const newest = onDomain
+    .map((e) => Date.parse(e.createdAt))
+    .sort((a, b) => b - a)[0];
+  const daysSinceLast = newest ? Math.floor((Date.now() - newest) / 86400000) : null;
+
+  return {
+    domain,
+    used: onDomain.length,
+    cap,
+    aged,
+    ageDays: age,
+    atCap: onDomain.length >= cap,
+    daysSinceLast,
+    tooSoon: daysSinceLast !== null && daysSinceLast < MIN_DAYS_BETWEEN_SIGNUPS,
+  };
+}
+
+export function clientDomains(clientId: string) {
+  const domains = [...new Set(clientEmails(clientId).map((e) => e.domain))];
+  return domains.map(domainLoad);
 }
