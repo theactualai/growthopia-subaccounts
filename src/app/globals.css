@@ -10,7 +10,7 @@ body {
 a { color: var(--accent); }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 64px; }
 header.top { border-bottom: 1px solid var(--line); background: #fff; }
-header.top .inner { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; gap: 22px; align-items: baseline; }
+header.top .inner { max-width: 1180px; margin: 0 auto; padding: 14px 20px; display: flex; gap: 22px; align-items: center; }
 header.top strong { font-size: 15px; }
 header.top nav a { margin-right: 16px; text-decoration: none; color: var(--muted); font-size: 13px; }
 header.top nav a:hover { color: var(--ink); }
