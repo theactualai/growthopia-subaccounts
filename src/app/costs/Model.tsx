@@ -39,6 +39,13 @@ export default function Model() {
             <input type="number" min={1} max={60} value={a.clientLifetimeMonths}
               onChange={(e) => set('clientLifetimeMonths', Number(e.target.value))} />
           </label>
+          <label>Proxy tier<br />
+            <select value={a.proxyTier} onChange={(e) => set('proxyTier', e.target.value as any)}>
+              <option value="dedicated">Dedicated $0.825/IP</option>
+              <option value="private">Private $0.429/IP</option>
+              <option value="shared">Shared $0.30/IP (fails IG signup)</option>
+            </select>
+          </label>
           <label>Budget ceiling $<br />
             <input type="number" min={1} value={a.budgetCeiling}
               onChange={(e) => set('budgetCeiling', Number(e.target.value))} />
@@ -55,7 +62,7 @@ export default function Model() {
           <thead>
             <tr>
               <th className="num">Clients</th><th className="num">Profiles</th><th className="num">Identities</th>
-              <th>GoLogin plan</th><th className="num">GoLogin</th><th className="num">Proxy</th>
+              <th>GoLogin plan</th><th>Proxy tier</th><th className="num">GoLogin</th><th className="num">Proxy</th>
               <th className="num">Infra</th><th className="num">Phone</th><th className="num">Total</th>
               <th className="num">Agency / mo</th><th />
             </tr>
@@ -66,7 +73,7 @@ export default function Model() {
                 <td className="num">{r.clients}</td>
                 <td className="num">{r.socialProfiles}</td>
                 <td className="num">{r.identities}</td>
-                <td className="muted">{r.goLoginPlan}</td>
+                <td className="muted">{r.goLoginPlan}</td><td className="muted">{r.proxyTier}</td>
                 <td className="num">{money(r.goLoginPerClient)}</td>
                 <td className="num">{money(r.proxyPerClient)}</td>
                 <td className="num">{money(r.infra)}</td>

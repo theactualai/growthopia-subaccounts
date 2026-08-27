@@ -14,8 +14,22 @@ export const GOLOGIN = [
   { plan: 'Custom',       profiles: 2000, monthly: 449, annual: 224.5 },
 ];
 
-// Webshare sells in fixed bundles with a 20-proxy minimum, which is why cost
-// per client is lumpy rather than smooth.
+// Webshare static residential, three exclusivity tiers.
+//
+// 2026-08-27, measured live: the SHARED tier could not get past Instagram's
+// signup CAPTCHA - infinite loop. Switching to DEDICATED cleared it immediately
+// on the same account. So shared is not a viable tier for account creation, only
+// for cheaper work afterwards. Model dedicated by default.
+export const PROXY_PER_IP = {
+  shared: 0.30,     // fails Instagram signup CAPTCHA - do not use for signups
+  private: 0.429,   // shared with up to 2 other users, untested here
+  dedicated: 0.825, // exclusive, confirmed working for Instagram signup
+} as const;
+
+export type ProxyTier = keyof typeof PROXY_PER_IP;
+
+// Bundle pricing for the shared tier, kept for comparison. The 20-proxy minimum
+// is why shared cost per client was lumpy rather than smooth.
 export const WEBSHARE = [
   { proxies: 20,    monthly: 6,     annual: 4 },
   { proxies: 100,   monthly: 30,    annual: 20.01 },
@@ -35,6 +49,7 @@ export type Assumptions = {
   rentalPerNumber: number;
   retryFactor: number;
   budgetCeiling: number;
+  proxyTier: ProxyTier;
   codeInstagram: number;
   codeTikTok: number;
   codeYouTube: number;
@@ -52,6 +67,7 @@ export const DEFAULTS: Assumptions = {
   rentalPerNumber: 5,
   retryFactor: 1.25,
   budgetCeiling: 15,
+  proxyTier: 'dedicated',
   codeInstagram: 0.5,
   codeTikTok: 0.75,
   codeYouTube: 0.75,
@@ -85,11 +101,11 @@ export function phoneCosts(a: Assumptions) {
 export function modelRow(clients: number, a: Assumptions) {
   const ids = clients * identitiesPerClient(a);
   const gl = fits(GOLOGIN, 'profiles', ids);
-  const ws = fits(WEBSHARE, 'proxies', ids);
+  const proxyMonthly = ids * PROXY_PER_IP[a.proxyTier];
   const glCost = a.billing === 'annual' ? gl.annual : gl.monthly;
-  const wsCost = a.billing === 'annual' ? ws.annual : ws.monthly;
+
   const phone = phoneCosts(a);
-  const infra = glCost / clients + wsCost / clients;
+  const infra = glCost / clients + proxyMonthly / clients;
   const total = infra + phone[a.phoneStrategy];
   return {
     clients,
@@ -97,8 +113,8 @@ export function modelRow(clients: number, a: Assumptions) {
     identities: ids,
     goLoginPlan: `${gl.plan} ${gl.profiles}`,
     goLoginPerClient: glCost / clients,
-    webshareTier: ws.proxies,
-    proxyPerClient: wsCost / clients,
+    proxyTier: a.proxyTier,
+    proxyPerClient: proxyMonthly / clients,
     infra,
     phone: phone[a.phoneStrategy],
     total,
