@@ -112,19 +112,32 @@ export type TldInfo = {
 };
 
 export const TLDS: TldInfo[] = [
-  { tld: 'com', renewal: 10.18, registry: 'Verisign', riskyShare: null, verdict: 'fine', note: 'Default. Largest namespace, unremarkable reputation.' },
-  { tld: 'cc',  renewal: 8.26,  registry: 'Verisign', riskyShare: null, verdict: 'fine', note: 'Run by Verisign, same as .com. Not on the 2026 worst-TLD lists.' },
-  { tld: 'co',  renewal: 27.48, registry: '.CO Internet', riskyShare: null, verdict: 'fine', note: 'Clean but pricey to renew.' },
-  { tld: 'net', renewal: 12.98, registry: 'Verisign', riskyShare: null, verdict: 'fine' },
-  { tld: 'org', renewal: 11.48, registry: 'PIR', riskyShare: null, verdict: 'fine' },
-  { tld: 'xyz', renewal: 12.98, registry: 'XYZ.com', riskyShare: 0.549, verdict: 'avoid', note: '55% of registrations flagged risky.' },
-  { tld: 'top', renewal: 8.98,  registry: 'Jiangsu Bangning', riskyShare: 0.536, verdict: 'avoid', note: '54% flagged risky. Cheap for a reason.' },
-  { tld: 'icu', renewal: 9.98,  registry: 'ShortDot', riskyShare: null, verdict: 'avoid', note: 'Repeatedly in worst-TLD rankings.' },
-  { tld: 'sbs', renewal: 9.98,  registry: 'ShortDot', riskyShare: null, verdict: 'avoid', note: 'Repeatedly in worst-TLD rankings.' },
-  { tld: 'click', renewal: 12.98, registry: 'Identity Digital', riskyShare: null, verdict: 'avoid' },
+  // renewal = cheapest Spaceship renewal, checked 2026-08-26. First-year prices
+  // are loss leaders and are deliberately not stored - they mislead.
+  { tld: 'cc',     renewal: 8.26,  registry: 'Verisign',         riskyShare: null,  verdict: 'fine',  note: 'Cheapest renewal of any usable TLD. Verisign, same registry as .com.' },
+  { tld: 'com',    renewal: 10.18, registry: 'Verisign',         riskyShare: null,  verdict: 'fine',  note: 'Default. Unremarkable reputation, most familiar.' },
+  { tld: 'org',    renewal: 11.48, registry: 'PIR',              riskyShare: null,  verdict: 'fine' },
+  { tld: 'net',    renewal: 12.98, registry: 'Verisign',         riskyShare: null,  verdict: 'fine' },
+  { tld: 'me',     renewal: 15.53, registry: 'doMEn',            riskyShare: null,  verdict: 'fine' },
+  { tld: 'biz',    renewal: 18.83, registry: 'Identity Digital', riskyShare: null,  verdict: 'fine' },
+  { tld: 'info',   renewal: 21.94, registry: 'Identity Digital', riskyShare: null,  verdict: 'fine',  note: 'Clean but twice the renewal of .com.' },
+  { tld: 'pro',    renewal: 21.94, registry: 'Identity Digital', riskyShare: null,  verdict: 'fine',  note: '$2.79 first year, $21.94 every year after.' },
+  { tld: 'live',   renewal: 26.08, registry: 'Identity Digital', riskyShare: null,  verdict: 'fine',  note: '$2.27 first year, $26.08 every year after.' },
+  { tld: 'space',  renewal: 18.38, registry: 'Radix',            riskyShare: null,  verdict: 'avoid', note: 'Cheap first year, $18.38 renewal, heavily abused namespace.' },
+  { tld: 'site',   renewal: 20.18, registry: 'Radix',            riskyShare: null,  verdict: 'avoid', note: '$1.18 first year, $20.18 renewal. On risky-TLD lists.' },
+  { tld: 'online', renewal: 20.18, registry: 'Radix',            riskyShare: null,  verdict: 'avoid', note: '$1.18 first year, $20.18 renewal. On risky-TLD lists.' },
+  { tld: 'store',  renewal: 30.78, registry: 'Radix',            riskyShare: null,  verdict: 'avoid', note: '$1.18 first year, $30.78 renewal.' },
+  { tld: 'shop',   renewal: 31.25, registry: 'GMO',              riskyShare: null,  verdict: 'avoid', note: '$0.90 first year, $31.25 renewal.' },
+  { tld: 'fun',    renewal: 31.25, registry: 'Radix',            riskyShare: null,  verdict: 'avoid', note: '$1.73 first year, $31.25 renewal.' },
+  { tld: 'icu',    renewal: 15.73, registry: 'ShortDot',         riskyShare: null,  verdict: 'avoid', note: 'Repeatedly in worst-TLD rankings.' },
+  { tld: 'xyz',    renewal: 12.98, registry: 'XYZ.com',          riskyShare: 0.549, verdict: 'avoid', note: '55% of registrations flagged risky.' },
+  { tld: 'top',    renewal: 8.98,  registry: 'Jiangsu Bangning', riskyShare: 0.536, verdict: 'avoid', note: '54% flagged risky.' },
 ];
 
-export const SAFE_TLDS = TLDS.filter((t) => t.verdict === 'fine').map((t) => t.tld);
+// Sorted by renewal, cheapest first, because that is the number you pay forever.
+export const SAFE_TLDS = TLDS.filter((t) => t.verdict === 'fine')
+  .sort((a, b) => a.renewal - b.renewal)
+  .map((t) => t.tld);
 
 // Check one name across several TLDs at once.
 export async function checkAcrossTlds(name: string, tlds: string[] = SAFE_TLDS) {
