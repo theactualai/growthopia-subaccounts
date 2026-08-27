@@ -35,7 +35,14 @@ const wanted = zone.name_servers;
 if (wanted.every((h) => current.includes(h))) {
   console.log(`2. nameservers already pointed at Cloudflare`);
 } else {
-  const n = await ss.setNameservers(domain, wanted);
+  // A just-registered domain is not immediately visible to the nameserver
+  // endpoint, which reports a misleading "Domain transfer not found". Retry.
+  let n = await ss.setNameservers(domain, wanted);
+  for (let i = 0; !n.ok && i < 5; i++) {
+    console.log(`2. not ready yet (${n.error}) - retrying in 20s`);
+    await new Promise((r) => setTimeout(r, 20000));
+    n = await ss.setNameservers(domain, wanted);
+  }
   console.log(n.ok ? `2. nameservers set at Spaceship` : `2. FAILED: ${n.error}`);
   if (!n.ok) process.exit(1);
 }
