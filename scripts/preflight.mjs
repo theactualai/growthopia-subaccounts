@@ -21,6 +21,7 @@ const warn = (s) => console.log(`  warn   ${s}`);
 
 console.log('\nPROXIES');
 let proxies = [];
+let reps = [];
 try {
   const p = await ws.listProxies();
   proxies = p.results;
@@ -32,9 +33,17 @@ try {
   else ok('all proxies are US');
   const dead = proxies.filter((x) => !x.valid);
   if (dead.length) warn(`${dead.length} proxy/proxies reported invalid`);
-  for (const x of proxies.filter((x) => x.country_code === 'US').slice(0, 10)) {
+  const us = proxies.filter((x) => x.country_code === 'US');
+  console.log(`  checking reputation of ${us.length} IPs (paced, takes ~${Math.ceil(us.length * 1.4)}s)...`);
+  reps = await ws.reputations(us.map((x) => x.proxy_address));
+  const cleanIps = reps.filter((r) => r.clean).length;
+  if (!cleanIps) bad('every proxy is flagged as proxy or hosting by public databases');
+  else ok(`${cleanIps} of ${us.length} proxies are unflagged`);
+  for (const x of us) {
+    const rep = reps.find((r) => r.ip === x.proxy_address);
     const codes = ws.areaCodesFor(x.city_name);
-    console.log(`         ${x.proxy_address}:${x.port}  ${x.city_name ?? '?'}  ->  request area code ${codes ? codes.join('/') : '(city not mapped)'}`);
+    const mark = rep?.lookupFailed ? 'lookup failed' : rep?.clean ? 'clean' : 'FLAGGED';
+    console.log(`         ${x.proxy_address.padEnd(16)} ${(x.city_name ?? '?').padEnd(12)} ${mark.padEnd(13)} area code ${codes ? codes.join('/') : '(city not mapped)'}`);
   }
 } catch (e) { bad(`Webshare: ${e.message}`); }
 
@@ -66,8 +75,10 @@ try {
       bad(`"${p.name}" points at ${px.host}, which is NOT in your Webshare list. Stale after a proxy replacement - rebind it or the signup runs on an IP you do not control.`);
       continue;
     }
-    if (match.country_code !== 'US') bad(`"${p.name}" is on a ${match.country_code} IP`);
-    else ok(`"${p.name}" -> ${match.city_name}, US`);
+    if (match.country_code !== 'US') { bad(`"${p.name}" is on a ${match.country_code} IP`); continue; }
+    const rep = reps.find((r) => r.ip === match.proxy_address);
+    if (rep && !rep.clean) bad(`"${p.name}" is on ${match.proxy_address}, which public databases flag as ${rep.flaggedProxy ? 'a proxy' : 'hosting'}. Rebind to a clean IP.`);
+    else ok(`"${p.name}" -> ${match.city_name}, US, unflagged`);
   }
 } catch (e) { bad(`GoLogin: ${e.message}`); }
 

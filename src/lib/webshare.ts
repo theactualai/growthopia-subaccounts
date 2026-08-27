@@ -60,3 +60,58 @@ export const AREA_CODES: Record<string, string[]> = {
 
 export const areaCodesFor = (city: string | null) =>
   city ? (AREA_CODES[city] ?? null) : null;
+
+
+// Independent reputation lookup.
+//
+// Webshare labels every static residential IP by city and never tells you
+// whether public databases have it flagged. Measured 2026-08-27: 6 of 10 US IPs
+// on this account come back flagged as proxy, including every address in the
+// 9.249.x.x (Astound) range. Anything a free lookup can see, a platform can see,
+// so treat "flagged" as disqualifying for account creation.
+export type IpReputation = {
+  ip: string;
+  country?: string;
+  city?: string;
+  isp?: string;
+  flaggedProxy: boolean;
+  flaggedHosting: boolean;
+  clean: boolean;
+  lookupFailed?: boolean;
+};
+
+const repCache = new Map<string, IpReputation>();
+
+export async function reputation(ip: string): Promise<IpReputation> {
+  const hit = repCache.get(ip);
+  if (hit) return hit;
+  let out: IpReputation;
+  try {
+    const r = await fetch(
+      `http://ip-api.com/json/${ip}?fields=status,country,countryCode,city,isp,proxy,hosting`,
+      { signal: AbortSignal.timeout(12000) },
+    );
+    const j: any = await r.json();
+    if (j.status !== 'success') throw new Error(j.message ?? 'lookup failed');
+    out = {
+      ip, country: j.countryCode, city: j.city, isp: j.isp,
+      flaggedProxy: Boolean(j.proxy), flaggedHosting: Boolean(j.hosting),
+      clean: !j.proxy && !j.hosting,
+    };
+  } catch {
+    // Unknown is not clean. Never let a failed lookup pass as usable.
+    out = { ip, flaggedProxy: false, flaggedHosting: false, clean: false, lookupFailed: true };
+  }
+  repCache.set(ip, out);
+  return out;
+}
+
+/** ip-api's free tier rate-limits, so this paces itself deliberately. */
+export async function reputations(ips: string[]): Promise<IpReputation[]> {
+  const out: IpReputation[] = [];
+  for (const ip of ips) {
+    out.push(await reputation(ip));
+    await new Promise((r) => setTimeout(r, 1400));
+  }
+  return out;
+}

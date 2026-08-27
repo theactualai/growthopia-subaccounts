@@ -26,9 +26,23 @@ const { results } = await ws.listProxies();
 const inCity = results.filter((p) => p.country_code === 'US' && p.city_name === wantCity && p.valid);
 if (!inCity.length) { console.error(`no valid US proxy in ${wantCity}`); process.exit(1); }
 
-// Which of those is not already bound to another profile.
+// Reputation first, then availability. A flagged IP in the right city is worse
+// than a clean one in the next city over.
+console.log(`  checking reputation of ${inCity.length} ${wantCity} proxies...`);
+const reps = await ws.reputations(inCity.map((p) => p.proxy_address));
 const used = new Set(profiles.map((p) => p.proxy?.host).filter(Boolean));
-const pick = inCity.find((p) => !used.has(p.proxy_address)) ?? inCity[0];
+const clean = inCity.filter((p) => reps.find((r) => r.ip === p.proxy_address)?.clean);
+const flagged = inCity.length - clean.length;
+if (flagged) console.log(`  ${flagged} of ${inCity.length} flagged by public databases, skipping those`);
+
+const pool = clean.length ? clean : [];
+if (!pool.length) {
+  console.error(`\n  NO CLEAN PROXY in ${wantCity}. Every one is flagged as proxy or hosting.`);
+  console.error(`  Replace them on Webshare, or pass --allow-flagged to bind anyway.\n`);
+  if (!process.argv.includes('--allow-flagged')) process.exit(1);
+}
+const candidates = pool.length ? pool : inCity;
+const pick = candidates.find((p) => !used.has(p.proxy_address)) ?? candidates[0];
 
 // HTTP, not SOCKS5: measured 2026-08-26, Microsoft 502s over SOCKS5 on the same IP.
 await gl.setProxy(profile.id, {
