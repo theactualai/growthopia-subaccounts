@@ -7,10 +7,13 @@
 //   - a proxy in one country paired with a phone number from another
 //   - a browser profile bound to an IP that was replaced out from under it
 
-import * as ws from './webshare';
-import * as gl from './gologin';
-import * as cf from './cloudflare';
-import * as ss from './spaceship';
+// Explicit .ts extensions so this resolves identically under Next's bundler and
+// under plain `node --experimental-strip-types`, which the CLI wrapper uses.
+// Without them the dashboard builds fine and the script dies at import.
+import * as ws from './webshare.ts';
+import * as gl from './gologin.ts';
+import * as cf from './cloudflare.ts';
+import * as ss from './spaceship.ts';
 
 export type Severity = 'block' | 'warn' | 'ok';
 export type Finding = { severity: Severity; area: string; message: string };
