@@ -27,6 +27,12 @@ Seed data only. No env vars required for the preview.
 - ⬜ **GoLogin + Webshare adapters** - create identities and allocate proxies from the dashboard.
 - ⬜ **Monday.com client sync** - pull the client list rather than keeping a second one.
 
+## Live resources
+
+- **360bnbhosting.cc** - registered 2026-08-27 via the Spaceship API. $3.11 first year, $8.26 renewal, auto-renew ON, WHOIS privacy high.
+- **Spaceship contact ID** - cached in `.spaceship-contact.json` (gitignored). There is no endpoint to list contacts, only to create, so this one is reused for every future registration. Losing it means creating a duplicate contact.
+- **Cloudflare destination** - alex@growthopia.io, catch-all target for every client domain.
+
 ## Decisions
 
 - **2026-08-26 - Cost target is $10-15/client/month.** Reachable. At 3 accounts per platform and annual billing the infra lands near $1.70-2.80/client. Phone strategy is the only lever that can break it.
@@ -49,6 +55,8 @@ Seed data only. No env vars required for the preview.
 - **Spaceship API covers domains, not mailboxes.** Full REST API at `spaceship.dev/api/v1` (OpenAPI 3.0, `X-API-Key` + `X-API-Secret`): check availability in bulk, register, renew, transfer, manage contacts, nameservers and DNS records. Registration is rate-limited to 30 requests per 30s and some calls return 202 for polling. There are **no Spacemail mailbox endpoints** - the only "email" in the spec is the WHOIS email-protection preference. Provision inboxes with a catch-all instead: the API sets MX, and a catch-all means every address you invent already works with no mailbox to create.
 - **RDAP must be routed via the IANA bootstrap.** Guessing the hostname fails: .com is `rdap.verisign.com` but .cc is `tld-rdap.verisign.com`, and rdap.org's redirect times out often enough to fake an "unknown". `lib/domains.ts` fetches `data.iana.org/rdap/dns.json` once and caches the mapping.
 - **Domain checks are authoritative, handle checks are not.** RDAP is the registry's own protocol: 404 means available, 200 returns the registration record including age. Use it. The social-handle checks remain best-effort (YouTube only).
+- **Cloudflare token needs FOUR account-scoped permissions, not three.** Zone creation fails with `com.cloudflare.api.account.zone.create` unless `Account > Zone > Edit` is on the token, and destination addresses need `Account > Email Routing Addresses > Edit`. Both live under the **Account** scope in the first dropdown - the Zone scope list does not contain them.
+- **Spaceship registration needs a contact ID first.** `PUT /v1/contacts` returns one; there is no GET to list them. Registration is `POST /v1/domains/{domain}` and bills the default payment method irreversibly.
 - **Cap accounts per email domain and space the signups.** Alex has seen accounts restricted for reusing one domain across several signups. Enforced in `lib/store.ts`: 2 accounts on a domain under 180 days old, 5 on an aged one, and at least 2 days between signups on the same domain. Domain age and velocity are the likely real drivers, so an aged client domain carries more load than a freshly bought one.
 - **The handle finder needs `ANTHROPIC_API_KEY` on Vercel.** There is no `claude` CLI in a serverless runtime, so the AI step falls back to rule-based ideas only until the key is set.
 
