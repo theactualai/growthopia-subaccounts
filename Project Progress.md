@@ -218,3 +218,18 @@ Added `preflight.mjs` to catch all of this before an attempt is spent, including
 check after it initially passed a profile pointing at a proxy that had been replaced.
 
 Handed to a tech/IT person at this point. Phone verification is the open problem.
+
+### 27 Aug 2026 — deployment was silently blocked for a day
+
+Ten consecutive deployments sat in BLOCKED with no build logs. Cause: commits were
+authored as `support@theactualai.com`, which Vercel could not match to a GitHub
+account, and Hobby-plan projects refuse to build those. Nothing was wrong with the
+code; production just kept serving the last build from 26 Aug.
+
+Fixed by setting a repo-local git identity to the GitHub noreply address
+(`247026948+theactualai@users.noreply.github.com`). This repo only — the parent
+`Growthopia Ops` repo keeps its own convention.
+
+**Watch for this:** a BLOCKED deployment with no build logs is an author-email
+mismatch, not a code or billing problem. `git config user.email` inside this repo
+must stay an address GitHub recognises.
