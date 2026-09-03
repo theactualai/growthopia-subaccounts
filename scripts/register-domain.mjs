@@ -17,17 +17,29 @@ const domain = process.argv[2];
 const CONFIRM = process.argv.includes('--confirm');
 if (!domain) { console.error('usage: register-domain.mjs <domain> [--confirm]'); process.exit(1); }
 
+// ICANN requires accurate registrant details, so these are real and must never
+// be hardcoded here - this file is public. They live in .env, which is not.
 const REGISTRANT = {
-  firstName: 'Alex',
-  lastName: 'Ivanoff',
-  email: process.env.CLOUDFLARE_DESTINATION_EMAIL ?? 'alex@growthopia.io',
-  phone: '+1.6097310153',
-  address1: '957 Atlantic Ave Apt 513',
-  city: 'Brooklyn',
-  stateProvince: 'NY',
-  postalCode: '11238',
-  country: 'US',
+  firstName:     need('REGISTRANT_FIRST_NAME'),
+  lastName:      need('REGISTRANT_LAST_NAME'),
+  email:         need('REGISTRANT_EMAIL'),
+  phone:         need('REGISTRANT_PHONE'),          // E.164 with a dot: +1.5551234567
+  address1:      need('REGISTRANT_ADDRESS1'),
+  city:          need('REGISTRANT_CITY'),
+  stateProvince: need('REGISTRANT_STATE'),
+  postalCode:    need('REGISTRANT_POSTCODE'),
+  country:       need('REGISTRANT_COUNTRY'),        // ISO 3166-1 alpha-2
 };
+
+function need(key) {
+  const v = process.env[key];
+  if (!v) {
+    console.error(`\n${key} is not set in .env.\n`);
+    console.error('Domain registration needs real registrant details. See .env.example.\n');
+    process.exit(1);
+  }
+  return v;
+}
 
 // Contact IDs are reused across every registration; cache the first one.
 const CACHE = '.spaceship-contact.json';
